@@ -15,7 +15,7 @@
 #define LOWPASS_FILTER 					1
 
 #if (LOWPASS_FILTER == 1)
-#define FILTER_NUM 						5
+#define FILTER_NUM 					5
 #endif
 ```
 
@@ -97,10 +97,10 @@ uint32_t motor_channelGetPeriod(motor_t * motor);
 
 ```c
 void motor_driverInit_TB6612 (	motor_t * motor, 
-								GPIO_TypeDef * drvGPIO,  uint16_t drvGPIO_Pin,		/*STBY PIN*/
-								GPIO_TypeDef * GPIO_IN1, uint16_t GPIO_IN1_PIN,		/*A/BIN1 PIN*/
-								GPIO_TypeDef * GPIO_IN2, uint16_t GPIO_IN2_PIN,		/*A/BIN2 PIN*/
-								motor_bool ifDrvInv);								/*If inverse rotating direction*/
+				GPIO_TypeDef * drvGPIO,  uint16_t drvGPIO_Pin,		/*STBY PIN*/
+				GPIO_TypeDef * GPIO_IN1, uint16_t GPIO_IN1_PIN,		/*A/BIN1 PIN*/
+				GPIO_TypeDef * GPIO_IN2, uint16_t GPIO_IN2_PIN,		/*A/BIN2 PIN*/
+				motor_bool ifDrvInv);					/*If inverse rotating direction*/
 ```
 
 * 作用：初始化电机驱动
@@ -136,12 +136,12 @@ void motor_timeTick(motor_t * motor);
 * 说明：可以放在任何定时器中断里
 
 ```c
-void motor_init_closedloop (motor_t * motor, motor_dataType dataType,			/*Motor init*/
-							pid_typedef * velPID, pid_typedef * posPID, 		/*PID init*/
-							TIM_HandleTypeDef * htim, uint32_t channel,			/*PWM init*/
-							TIM_HandleTypeDef * enchtim, motor_bool ifCalInv,	/*Timer-Encoder init*/
-							uint32_t usTickPeriod,								/*Set the period of motor tick*/
-							int gearRatio, int ppr, float radius);				/*Set motor parameters*/
+void motor_init_closedloop (motor_t * motor, motor_dataType dataType,						/*Motor init*/
+			    	pid_typedef * velPID, pid_typedef * posPID, 		/*PID init*/
+				TIM_HandleTypeDef * htim, uint32_t channel,		/*PWM init*/
+				TIM_HandleTypeDef * enchtim, motor_bool ifCalInv,	/*Timer-Encoder init*/
+				uint32_t usTickPeriod,					/*Set the period of motor tick*/
+				int gearRatio, int ppr, float radius);			/*Set motor parameters*/
 ```
 
 * 作用：电机闭环初始化
@@ -234,24 +234,24 @@ motor_driverInit_TB6612(&rMotor,
 
 ```c
 motor_init_closedloop ( &rMotor, rad,
-					    &pid_rMotorVel,&pid_rMotorPos,		/*pid init*/
-					    &htim2, TIM_CHANNEL_1,				/*peripherals init*/
-					    &htim4, MOTOR_FALSE,				/*encoder init*/
-					    10000,								/*tick period set*/
-						30, 11, 33.5 );						/*motor parameters init*/
+			&pid_rMotorVel,&pid_rMotorPos,		/*pid init*/
+			&htim2, TIM_CHANNEL_1,			/*peripherals init*/
+			&htim4, MOTOR_FALSE,			/*encoder init*/
+			10000,					/*tick period set*/
+			30, 11, 33.5 );				/*motor parameters init*/
 ```
 
 4. 速度环、位置环PID初始化
 
 ```c
 pid_init ( &pid_rMotorVel,
-			40, 420, 0,
-			10000, 1000,
-			10000);
+		40, 420, 0,
+		10000, 1000,
+		10000);
 pid_init ( &pid_rMotorPos,
-			10, 0, 0.7,
-			10000, 50,
-			10000);
+		10, 0, 0.7,
+		10000, 50,
+		10000);
 ```
 
 5. 定时器中断回调函数
