@@ -65,10 +65,10 @@ typedef struct motor_t
 	motor_initStatus_t initStatus;
 	motor_status_t status;
 	/*motor mode*/
-	motor_mode_t mode;
+	motor_ctrl_t ctrlType;
 #endif
 
-#if (LOWPASS_FILTER == 1)
+#if (LOWPASS_FILTER == 1 && MOTOR_CLOSEDLOOP == 1)
 	filter_t filter;
 #endif
 	/*test whether motor rotates correctly*/
