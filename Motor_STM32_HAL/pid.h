@@ -23,7 +23,10 @@ typedef struct
 }pid_typedef;
 
 /*declare extern variables*/
-
+// extern pid_typedef pid_rMotorVel;
+// extern pid_typedef pid_rMotorPos;
+// extern pid_typedef pid_lMotorVel;
+// extern pid_typedef pid_lMotorPos;
 
 uint32_t pid_getTick(pid_typedef * pid);
 void pid_timeTick(pid_typedef * pid);

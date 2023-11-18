@@ -39,15 +39,6 @@ typedef enum
 
 typedef enum
 {
-	MOTOR_START_READY,
-	MOTOR_STARTING,
-	MOTOR_START_COMPLETE,
-	MOTOR_RUNNING,
-	MOTOR_STOPPED
-}motor_status_t;
-
-typedef enum
-{
 	MOTOR_INITING = 0,
 	MOTOR_INIT_OK,
 }motor_initStatus_t;
@@ -65,11 +56,10 @@ typedef enum
 /*motor closedloop struct*/
 typedef enum
 {
-	MOTOR_MODE_IDLE = 0,
-	MOTOR_MODE_VEL,
-	MOTOR_MODE_POS,
-	MOTOR_MODE_STOP
-}motor_mode_t;
+	MOTOR_CTRL_NON = 0,
+	MOTOR_CTRL_VEL,
+	MOTOR_CTRL_POS,
+}motor_ctrl_t;
 
 typedef struct motor_param_t
 {
@@ -91,6 +81,8 @@ typedef struct motor_data_t
 	motor_dataType dataType;
 	float velocity;
 	float position;
+	float targetVelo;
+	float targetPos;
 }motor_data_t;
 
 typedef struct motor_encoder_t
@@ -148,12 +140,11 @@ typedef struct motor_t
 	motor_tick_t tick;
 	/*motor status*/
 	motor_initStatus_t initStatus;
-	motor_status_t status;
-	/*motor mode*/
-	motor_mode_t mode;
+	/*motor ctrl type*/
+	motor_ctrl_t ctrlType;
 #endif
 
-#if (LOWPASS_FILTER == 1)
+#if (LOWPASS_FILTER == 1 && MOTOR_CLOSEDLOOP == 1)
 	filter_t filter;
 #endif
 	/*test whether motor rotates correctly*/
@@ -162,7 +153,8 @@ typedef struct motor_t
 }motor_t;
 
 /*declare extern variables*/
-
+// extern motor_t rMotor;
+// extern motor_t lMotor;
 /*peripheral operation functions*/
 void motor_channelSetCompare(motor_t * motor, uint32_t compareVal);
 uint32_t motor_channelGetCompare(motor_t * motor);
@@ -209,9 +201,15 @@ void motor_init_closedloop (motor_t * motor, motor_dataType dataType,					/*Moto
 void motor_update (motor_t * motor);
 void motor_checkReload(motor_t * motor);
 
-void motor_set_velocity(motor_t * m, float targetVel);
-void motor_set_position(motor_t * m, float targetPos);
-void motorCtrl_startToVelocity(motor_t * m, float tVel, float accel);
+void motor_arrive_velocity(motor_t * m, float targetVel);
+void motor_arrive_position(motor_t * m, float targetPos);
+
+void motor_set_velocity(motor_t * m, float tV);
+void motor_set_position(motor_t * m, float tP);
+void motor_stop(motor_t * m);
+
+void motor_run(motor_t * m);
+
 #endif
 
 #endif

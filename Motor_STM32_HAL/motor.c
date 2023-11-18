@@ -8,6 +8,8 @@
 #include "motor.h"
 
 /*--------------------------variable definition--------------------------*/
+// motor_t rMotor;
+// motor_t lMotor;
 
 /*----------------------------Basic functions----------------------------*/
 static inline float _abs(float in)
@@ -108,6 +110,7 @@ float motor_filter_calc(filter_t *f, float in)
 	return sum / FILTER_NUM;
 }
 #endif
+
 /*get motor data*/
 inline void motor_timeTick(motor_t * motor)
 {
@@ -148,12 +151,12 @@ void motor_init_closedloop (motor_t * motor, motor_dataType dataType,
 	motor->encoder.pEncHtim = enchtim;
 	motor->ifCalInv = ifCalInv;
 	motor->tick.usTickPeriod = usTickPeriod;
-	motor->status = MOTOR_START_READY;
+	motor->ctrlType = MOTOR_CTRL_NON;
 	
 	motor->param.gearRatio = gearRatio;
 	motor->param.pulsePerRound = ppr;
 	motor->param.rotateRadius_mm = radius;
-	
+	motor->motorChannel = channel;
 	HAL_TIM_PWM_Start(htim, channel);
 	__HAL_TIM_ENABLE_IT(enchtim, TIM_IT_UPDATE);
 	HAL_TIM_Encoder_Start_IT(enchtim, TIM_CHANNEL_ALL);
@@ -182,6 +185,7 @@ void motor_update (motor_t * motor)
 			motor->data.rotateDir = ANTICLOCKWISE;
 		}
 	}
+	
 	float dRad = motor->data.rotateDir
 						 * _abs(motor->encoder.totalEncCnt 
 						 / (4.0 * motor->param.gearRatio * motor->param.pulsePerRound))
@@ -212,7 +216,6 @@ void motor_update (motor_t * motor)
 
 void motor_checkReload(motor_t * motor)
 {
-	static int reInit;
 	if(__HAL_TIM_GetCounter(motor->encoder.pEncHtim) 
 		> 0.5 * __HAL_TIM_GetAutoreload(motor->encoder.pEncHtim)) {	/*Down overflow*/
 		motor->encoder.encOverflowNum--;
@@ -220,14 +223,13 @@ void motor_checkReload(motor_t * motor)
 		motor->encoder.encOverflowNum++;
 	}
 	
-	if(reInit == 0) 	/*Prevent motor jittering at the initialization zero point.*/
+	if(motor_getTime_s(motor) <= 5*1e-1) 	/*Prevent motor jittering at the initialization zero point.*/
 	{
-		reInit = 1;
 		motor->encoder.encOverflowNum = 0;
 	}
 }
 
-void motor_set_velocity(motor_t * m, float targetVel)
+void motor_arrive_velocity(motor_t * m, float targetVel)
 {
 	float out = 0;
 	out = pid_calc(m->pVelPID, targetVel - m->data.velocity);
@@ -239,29 +241,40 @@ void motor_set_velocity(motor_t * m, float targetVel)
 	motor_channelSetCompare(m, (uint32_t)_abs(out));
 }
 
-void motor_set_position(motor_t * m, float targetPos)
+void motor_arrive_position(motor_t * m, float targetPos)
 {
 	float out = 0;
 	out = pid_calc(m->pPosPID, targetPos - m->data.position);
-	motor_set_velocity(m, out);
+	motor_arrive_velocity(m, out);
 }
 
-/*set accelaration and target velocity*/
-void motorCtrl_startToVelocity(motor_t * m, float tVel, float accel)
+void motor_run(motor_t * m)
 {
-	static float startTime_s;
-	static float startVel;
-	if (m->status == MOTOR_START_READY) {
-		startTime_s = motor_getTime_s(m);
-		startVel = m->data.velocity;
-		m->status = MOTOR_STARTING;
-	} else if (m->status == MOTOR_STARTING){
-		if(_abs(m->data.velocity - tVel) <= 1) {		/*arrive target velocity*/
-			m->status = MOTOR_START_COMPLETE;
-		} else {
-			motor_set_velocity(m, startVel + accel * (motor_getTime_s(m) - startTime_s));
-		}
+	if (m->ctrlType == MOTOR_CTRL_VEL) {
+		motor_arrive_velocity(m, m->data.targetVelo);
+	} else if (m->ctrlType == MOTOR_CTRL_POS) {
+		motor_arrive_position(m, m->data.targetPos);
+	} else {
 	}
+}
+
+void motor_set_velocity(motor_t * m, float tV)
+{
+	m->data.targetVelo = tV;
+	m->ctrlType = MOTOR_CTRL_VEL;
+}
+
+void motor_set_position(motor_t * m, float tP)
+{
+	m->data.targetPos = tP;
+	m->ctrlType = MOTOR_CTRL_POS;
+}
+
+void motor_stop(motor_t * m)
+{
+	m->data.targetPos = 0;
+	m->data.targetVelo = 0;
+	m->ctrlType = MOTOR_CTRL_VEL;
 }
 
 #endif

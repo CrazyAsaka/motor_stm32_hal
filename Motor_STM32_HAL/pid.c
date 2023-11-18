@@ -1,6 +1,11 @@
 #include "pid.h"
 
 /*variable definition*/
+// pid_typedef pid_rMotorVel;
+// pid_typedef pid_rMotorPos;
+// pid_typedef pid_lMotorVel;
+// pid_typedef pid_lMotorPos;
+
 
 inline uint32_t pid_getTick(pid_typedef * pid)
 {
