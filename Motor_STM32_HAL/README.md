@@ -208,7 +208,7 @@ float motor_get_position(motor_t * motor);
 
 ### cubeMX（只显示必要部分）
 
-1. 设置一个100Hz的定时器中断，同时开启pwm输出口用于驱动电机，PSC设置为840-1，ARR设置为1000即可（只是举个例子，参数合理即可）
+1. 设置一个100Hz的定时器中断，同时开启pwm输出口用于驱动电机，PSC设置为840-1，ARR设置为1000-1即可（只是举个例子，参数合理即可）
 2. 开启编码器模式，将Encoder Mode设置为 Encoder Mode TI1 and TI2，并使能编码器中断
 3. 设置TB6612驱动接口（STBY, A/BIN1/2）
 
